@@ -1,0 +1,1 @@
+export const getGeminiApiKey = () => process.env.GEMINI_API_KEY?.trim() || undefined;

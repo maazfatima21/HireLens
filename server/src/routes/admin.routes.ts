@@ -1,0 +1,15 @@
+import { Router } from "express";
+import { authenticate } from "../middleware/auth.middleware.js";
+import { authorize } from "../middleware/role.middleware.js";
+import * as controller from "../controllers/admin.controller.js";
+const router = Router();
+router.use(authenticate, authorize("ADMIN"));
+router.get("/stats", controller.stats);
+router.get("/users", controller.users);
+router.patch("/users/:id/status", controller.userStatus);
+router.get("/jobs", controller.jobs);
+router.patch("/jobs/:id/status", controller.jobStatus);
+router.get("/companies", controller.companies);
+router.patch("/companies/:id/verify", controller.companyVerify);
+router.get("/applications", controller.applications);
+export default router;

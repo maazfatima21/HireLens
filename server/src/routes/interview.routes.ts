@@ -1,0 +1,12 @@
+import { Router } from "express";
+import { authenticate } from "../middleware/auth.middleware.js";
+import { authorize } from "../middleware/role.middleware.js";
+import { create, my, recruiter, detail, update, remove } from "../controllers/interview.controller.js";
+const router = Router();
+router.post("/", authenticate, authorize("RECRUITER"), create);
+router.get("/my", authenticate, authorize("CANDIDATE"), my);
+router.get("/recruiter", authenticate, authorize("RECRUITER"), recruiter);
+router.get("/:id", authenticate, detail);
+router.patch("/:id", authenticate, authorize("RECRUITER"), update);
+router.delete("/:id", authenticate, authorize("RECRUITER"), remove);
+export default router;
