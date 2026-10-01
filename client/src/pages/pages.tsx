@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, NavLink, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { applicationsApi, authApi, jobsApi, adminApi, notificationsApi, profileApi, resumeApi,} from "../api/api";
@@ -9,6 +9,9 @@ import { JobCard } from "../components/JobCard";
 export function Shell({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
   const location = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
   const applicationId = location.pathname.match(/^\/recruiter\/applications\/([^/]+)$/)?.[1];
   const notifications = useQuery({ queryKey: ["notifications"], queryFn: () => notificationsApi.list().then((response) => response.data.data), enabled: Boolean(user) });
   return (
@@ -53,28 +56,21 @@ export function Shell({ children }: { children: React.ReactNode }) {
         <div className="footer-main">
           <div className="footer-brand">
             <Link className="brand" to="/">HireLens<span>/</span></Link>
-            <p>Thoughtful recruiting. Clearer opportunities.</p>
+            <p>Thoughtful recruiting.<br />Clearer opportunities.</p>
           </div>
-          <div className="footer-links">
-            <strong>Explore</strong>
-            <Link to="/jobs">Find jobs</Link>
-            <Link to="/about">Our approach</Link>
-          </div>
-          <div className="footer-links">
-            <strong>Hire with HireLens</strong>
-            <Link to="/employers">For employers</Link>
-            <Link to="/login">Recruiter sign in</Link>
-          </div>
-          <div className="footer-links">
-            <strong>About</strong>
-            <Link to="/about">Our approach</Link>
-            <Link to="/data-and-ai">Data &amp; AI</Link>
-            <Link to="/register">Create a candidate profile</Link>
+          <div className="footer-next">
+            <p className="eyebrow">YOUR NEXT STEP</p>
+            <h2>Make room for a better conversation.</h2>
+            <div className="footer-actions">
+              <Link to="/register">Create a candidate profile <span aria-hidden="true">↗</span></Link>
+              <Link to="/login">Recruiter sign in <span aria-hidden="true">↗</span></Link>
+              <Link to="/data-and-ai">How we use data &amp; AI <span aria-hidden="true">↗</span></Link>
+            </div>
           </div>
         </div>
         <div className="footer-bottom">
           <span>© {new Date().getFullYear()} HireLens</span>
-          <span>Made for more considered career conversations.</span>
+          <span>For every person behind a hiring decision.</span>
         </div>
       </footer>
     </>
@@ -88,7 +84,7 @@ export function Home() {
       <section className="home-hero">
         <img
           className="home-hero-image"
-          src="/public/Home.png"
+          src="/Home.png"
           alt="Colleagues sharing ideas around a table"
         />
         <div className="home-hero-content">

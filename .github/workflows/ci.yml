@@ -5,22 +5,39 @@ on:
 jobs:
   build-test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: 22, cache: npm, cache-dependency-path: server/package-lock.json }
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            server/package-lock.json
+            worker/package-lock.json
+            client/package-lock.json
       - name: Server install
         working-directory: server
         run: npm ci
-      - name: Server build
-        working-directory: server
-        run: npm run build
       - name: Server tests
         working-directory: server
         run: npm test
-      - name: Worker install and build
+      - name: Server build
+        working-directory: server
+        run: npm run build
+      - name: Worker install
         working-directory: worker
-        run: npm ci && npm run build && npm test
-      - name: Client install and build
+        run: npm ci
+      - name: Worker tests
+        working-directory: worker
+        run: npm test
+      - name: Worker build
+        working-directory: worker
+        run: npm run build
+      - name: Client install
         working-directory: client
-        run: npm ci && npm run build
+        run: npm ci
+      - name: Client build
+        working-directory: client
+        run: npm run build

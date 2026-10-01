@@ -1,5 +1,14 @@
-import { Link } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import { Button } from "../components/ui";
+
+function EmployerSectionSwitch() {
+  return (
+    <nav className="employer-section-switch" aria-label="Employer information">
+      <NavLink to="/employers" end>Employers</NavLink>
+      <NavLink to="/data-and-ai">Data &amp; AI</NavLink>
+    </nav>
+  );
+}
 
 export function AboutPage() {
   return (
@@ -9,6 +18,10 @@ export function AboutPage() {
         <h1>Good work begins with being understood.</h1>
         <p className="public-lede">HireLens brings job discovery and hiring coordination into one considered experience, so people can spend less time navigating the process and more time on the work ahead.</p>
       </div>
+      <figure className="public-image-figure">
+        <img src="/about.png" alt="Colleagues sharing ideas around a table" />
+        <figcaption>Good work starts with a clear conversation.</figcaption>
+      </figure>
       <div className="public-story-grid">
         <div>
           <p className="eyebrow">OUR POINT OF VIEW</p>
@@ -36,6 +49,7 @@ export function AboutPage() {
 export function EmployersPage() {
   return (
     <section className="public-page">
+      <EmployerSectionSwitch />
       <div className="public-intro">
         <p className="eyebrow">FOR EMPLOYERS</p>
         <h1>A more considered way to move candidates forward.</h1>
@@ -45,6 +59,10 @@ export function EmployersPage() {
           <Link className="button button-secondary" to="/about">Our approach</Link>
         </div>
       </div>
+      <figure className="public-image-figure">
+        <img src="/interview.jpg" alt="A team working together during a hiring conversation" />
+        <figcaption>Keep the process organized. Make room for people.</figcaption>
+      </figure>
       <div className="employer-feature-grid">
         <article><span>01 / SHARE</span><h2>Publish roles clearly</h2><p>Keep role details and requirements organized, then make published opportunities discoverable to candidates.</p></article>
         <article><span>02 / REVIEW</span><h2>Keep applications in view</h2><p>Review applicants, update application stages, and keep relevant context close to each decision.</p></article>
@@ -62,11 +80,16 @@ export function EmployersPage() {
 export function DataAndAIPage() {
   return (
     <section className="public-page">
+      <EmployerSectionSwitch />
       <div className="public-intro">
         <p className="eyebrow">DATA &amp; AI</p>
         <h1>Your information should support your next step, not make decisions for you.</h1>
         <p className="public-lede">Here is a plain-language overview of how HireLens handles resumes and AI-assisted analysis in the current product.</p>
       </div>
+      <figure className="public-image-figure">
+        <img src="/data.png" alt="A person reviewing documents and notes at a workspace" />
+        <figcaption>Private resume data, useful context, human judgment.</figcaption>
+      </figure>
       <div className="public-story-grid">
         <div><p className="eyebrow">RESUME STORAGE</p><h2>Your resume stays in private storage.</h2></div>
         <div className="public-copy"><p>Resume files are stored in a private Supabase Storage bucket. Candidate profile and application records are stored by the HireLens API in MongoDB.</p><p>When you apply, HireLens records which resume was current at submission so the recruiter responsible for that job can request a short-lived viewing link. Replacing your profile resume does not change the file associated with an earlier application.</p><p>You can remove your current profile resume from the Resume workspace. This removes that file from storage and may make it unavailable to earlier applications; it does not delete your HireLens account or application history.</p></div>
@@ -76,7 +99,6 @@ export function DataAndAIPage() {
         <article><span>02</span><h3>Results need human judgment</h3><p>Analysis and match results are informational. They are not a hiring decision, guarantee, or substitute for a candidate’s or recruiter’s judgment.</p></article>
         <article><span>03</span><h3>Access is scoped</h3><p>Recruiter resume links are issued only after checking that the recruiter owns the job attached to the application, and expire after five minutes.</p></article>
       </div>
-      <p className="notice-panel">This product overview is not a complete legal privacy notice. The organization operating HireLens must still publish reviewed terms, contact details, data-retention periods, and applicable privacy rights before inviting the public.</p>
     </section>
   );
 }
