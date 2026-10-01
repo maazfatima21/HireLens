@@ -31,6 +31,9 @@ Thumbs.db
 # Docker
 docker-data/
 
+# Backups may contain application data
+backups/
+
 # Temporary files
 tmp/
 temp/
