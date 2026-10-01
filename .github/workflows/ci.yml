@@ -41,3 +41,18 @@ jobs:
       - name: Client build
         working-directory: client
         run: npm run build
+      - name: Validate production Compose
+        env:
+          CLIENT_URL: https://example.invalid
+          MONGODB_URI: mongodb://example.invalid/hirelens
+          JWT_SECRET: 01234567890123456789012345678901
+          SUPABASE_URL: https://example.supabase.co
+          SUPABASE_SERVICE_ROLE_KEY: ci-placeholder
+          SUPABASE_RESUME_BUCKET: resumes
+          GEMINI_API_KEY: ci-placeholder
+        run: docker compose -f docker-compose.yml -f docker-compose.prod.yml config --quiet
+      - name: Build deployment images
+        run: |
+          docker build -t hirelens-server:ci ./server
+          docker build -t hirelens-worker:ci ./worker
+          docker build --build-arg VITE_API_URL=/api -t hirelens-client:ci ./client

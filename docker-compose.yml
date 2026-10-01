@@ -2,6 +2,9 @@ services:
   redis:
     image: redis:7-alpine
     restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -10,7 +13,6 @@ services:
 
   server:
     build: ./server
-    ports: ["5000:5000"]
     restart: unless-stopped
     environment:
       PORT: ${PORT:-5000}
@@ -52,7 +54,7 @@ services:
       context: ./client
       args:
         VITE_API_URL: ${VITE_API_URL:-/api}
-    ports: ["${CLIENT_PORT:-4173}:8080"]
+    ports: ["${CLIENT_BIND_ADDRESS:-127.0.0.1}:${CLIENT_PORT:-4173}:8080"]
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/ >/dev/null || exit 1"]
@@ -63,3 +65,6 @@ services:
     depends_on:
       server:
         condition: service_healthy
+
+volumes:
+  redis-data:

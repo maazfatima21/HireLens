@@ -1,0 +1,29 @@
+services:
+  server:
+    environment:
+      NODE_ENV: production
+      CLIENT_URL: ${CLIENT_URL:?Set CLIENT_URL to the public frontend origin}
+      MONGODB_URI: ${MONGODB_URI:?Set MONGODB_URI to the production database}
+      JWT_SECRET: ${JWT_SECRET:?Set a random JWT_SECRET of at least 32 characters}
+      REDIS_URL: redis://redis:6379
+      SUPABASE_URL: ${SUPABASE_URL:?Set SUPABASE_URL}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:?Set SUPABASE_SERVICE_ROLE_KEY}
+      SUPABASE_RESUME_BUCKET: ${SUPABASE_RESUME_BUCKET:?Set SUPABASE_RESUME_BUCKET}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:?Set GEMINI_API_KEY for resume processing}
+
+  worker:
+    environment:
+      NODE_ENV: production
+      MONGODB_URI: ${MONGODB_URI:?Set MONGODB_URI to the production database}
+      REDIS_URL: redis://redis:6379
+      SUPABASE_URL: ${SUPABASE_URL:?Set SUPABASE_URL}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:?Set SUPABASE_SERVICE_ROLE_KEY}
+      SUPABASE_RESUME_BUCKET: ${SUPABASE_RESUME_BUCKET:?Set SUPABASE_RESUME_BUCKET}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:?Set GEMINI_API_KEY for resume processing}
+
+  client:
+    build:
+      args:
+        VITE_API_URL: /api
+    ports:
+      - "127.0.0.1:${CLIENT_PORT:-4173}:8080"
