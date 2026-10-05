@@ -50,6 +50,8 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ci-placeholder
           SUPABASE_RESUME_BUCKET: resumes
           GEMINI_API_KEY: ci-placeholder
+          DOMAIN: example.invalid
+          ACME_EMAIL: ops@example.invalid
         run: docker compose -f docker-compose.yml -f docker-compose.prod.yml config --quiet
       - name: Build deployment images
         run: |
