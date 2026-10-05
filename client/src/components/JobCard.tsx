@@ -1,63 +1,72 @@
 import { Link } from "react-router-dom";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { applicationsApi, savedJobsApi } from "../api/api";
-import { useAuth } from "../context/AuthContext";
 import type { Job } from "../types";
 import { Card, Badge, Button } from "./ui";
 
+function formattedJobType(value: string) {
+	return value
+		.toLowerCase()
+		.split("_")
+		.map((part) => part[0].toUpperCase() + part.slice(1))
+		.join(" ");
+}
+
+function salaryRange(job: Job) {
+	if (job.salaryMin === undefined && job.salaryMax === undefined) {
+		return "Not disclosed";
+	}
+
+	const formatAmount = (amount: number) =>
+		`${job.salaryCurrency || ""} ${amount.toLocaleString()}`.trim();
+
+	if (job.salaryMin !== undefined && job.salaryMax !== undefined) {
+		return `${formatAmount(job.salaryMin)} – ${formatAmount(job.salaryMax)}`;
+	}
+	if (job.salaryMin !== undefined) return `From ${formatAmount(job.salaryMin)}`;
+	return `Up to ${formatAmount(job.salaryMax!)}`;
+}
+
+function experienceRange(job: Job) {
+	if (job.experienceMin !== undefined && job.experienceMax !== undefined) {
+		return `${job.experienceMin}–${job.experienceMax} years`;
+	}
+	if (job.experienceMin !== undefined) return `${job.experienceMin}+ years`;
+	if (job.experienceMax !== undefined) return `Up to ${job.experienceMax} years`;
+	return "Not specified";
+}
+
+function formattedDeadline(value?: string) {
+	if (!value) return "Not specified";
+	const date = new Date(value);
+	return Number.isNaN(date.getTime())
+		? "Not specified"
+		: new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(date);
+}
+
 export function JobCard({ job }: { job: Job }) {
-	const { user } = useAuth();
-	const queryClient = useQueryClient();
-	const saved = useQuery({
-		queryKey: ["saved-jobs"],
-		queryFn: () => savedJobsApi.list().then((response) => response.data.data.jobs),
-		enabled: user?.role === "CANDIDATE",
-	});
-	const save = useMutation({
-		mutationFn: (isSaved: boolean) =>
-			isSaved ? savedJobsApi.remove(job._id) : savedJobsApi.save(job._id),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: ["saved-jobs"] }),
-	});
-	const isSaved = Boolean(saved.data?.some((item) => item._id === job._id));
+	const company = job.companyId && "name" in job.companyId ? job.companyId : undefined;
+	const location = [job.location?.city, job.location?.state, job.location?.country]
+		.filter(Boolean)
+		.join(", ") || (job.workMode === "REMOTE" ? "Remote" : "Location not specified");
 
 	return (
 		<Card className="job-card">
 			<div className="job-card-top">
-				<div className="eyebrow">{job.companyId?.name || "Company"}</div>
-				{user?.role === "CANDIDATE" && (
-					<Button
-						className="button save-job-button"
-						type="button"
-						aria-label={
-							isSaved ? `Remove ${job.title} from saved jobs` : `Save ${job.title}`
-						}
-						aria-pressed={isSaved}
-						disabled={save.isPending}
-						onClick={() => save.mutate(isSaved)}
-					>
-						{isSaved ? "Saved" : "Save"}
-					</Button>
-				)}
+				<div>
+					<div className="eyebrow">{company?.name || "Company"}</div>
+					{company?.industry && (
+						<p className="job-card-company-meta">{company.industry}</p>
+					)}
+				</div>
 			</div>
 			<h3>{job.title}</h3>
-			<p className="muted">
-				{job.location?.city ||
-					(job.workMode === "REMOTE" ? "Remote" : "Location not specified")}
-				{" "}
-				· {job.workMode} · {job.jobType.replaceAll("_", " ")}
+			<p className="job-card-location">{location}</p>
+			<p className="job-card-meta-row">
+				<span>{formattedJobType(job.jobType)}</span>
+				<span>•</span>
+				<span>{formattedJobType(job.workMode)}</span>
 			</p>
-			<div className="tags">
-				{job.skills?.slice(0, 5).map((skill) => (
-					<Badge key={skill}>{skill}</Badge>
-				))}
-			</div>
-			{save.isError && (
-				<p className="error" role="alert">
-					Could not update saved jobs.
-				</p>
-			)}
-			<Link className="text-link" to={`/jobs/${job._id}`}>
-				View opportunity <span aria-hidden="true">→</span>
+			<Link to={`/jobs/${job._id}`}>
+				<Button className="button" type="button">Apply</Button>
 			</Link>
 		</Card>
 	);

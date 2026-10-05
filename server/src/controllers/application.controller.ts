@@ -25,13 +25,30 @@ import { getApplicationResumeDownloadUrl } from "../services/resume.service.js";
 const applySchema = z.object({
   jobId: z.string().min(1, "Job ID is required"),
 
-  coverLetter: z
-    .string()
-    .max(
-      5000,
-      "Cover letter cannot exceed 5000 characters"
-    )
-    .optional()
+  coverLetter: z.preprocess(
+    (value) => typeof value === "string" && value.trim() === "" ? undefined : value,
+    z.string().trim().max(5000, "Cover letter cannot exceed 5000 characters").optional()
+  ),
+  contactPhone: z.preprocess(
+    (value) => typeof value === "string" && value.trim() === "" ? undefined : value,
+    z.string().trim().max(40).optional()
+  ),
+  linkedinUrl: z.preprocess(
+    (value) => typeof value === "string" && value.trim() === "" ? undefined : value,
+    z.string().trim().url("LinkedIn profile must be a valid URL").max(500).optional()
+  ),
+  portfolioUrl: z.preprocess(
+    (value) => typeof value === "string" && value.trim() === "" ? undefined : value,
+    z.string().trim().url("Portfolio or website must be a valid URL").max(500).optional()
+  ),
+  relevantExperienceYears: z.preprocess(
+    (value) => value === "" || value === null || value === undefined ? undefined : Number(value),
+    z.number().int().min(0).max(60).optional()
+  ),
+  noticePeriod: z.preprocess(
+    (value) => value === "" ? undefined : value,
+    z.enum(["IMMEDIATE", "TWO_WEEKS", "ONE_MONTH", "TWO_MONTHS", "THREE_MONTHS", "OTHER"]).optional()
+  ),
 });
 
 const updateStatusSchema = z.object({

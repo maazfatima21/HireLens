@@ -9,7 +9,6 @@ interface CompanyInput {
   description?: string;
   website?: string;
   industry?: string;
-  companySize?: string;
   location?: {
     city?: string;
     state?: string;

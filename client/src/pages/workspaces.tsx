@@ -826,7 +826,6 @@ type CompanyDraft = {
   description: string;
   website: string;
   industry: string;
-  companySize: string;
   city: string;
   state: string;
   country: string;
@@ -838,7 +837,6 @@ const emptyCompany: CompanyDraft = {
   description: "",
   website: "",
   industry: "",
-  companySize: "",
   city: "",
   state: "",
   country: "",
@@ -852,7 +850,6 @@ function companyDraft(company?: Company | null): CompanyDraft {
         description: company.description || "",
         website: company.website || "",
         industry: company.industry || "",
-        companySize: company.companySize || "",
         city: company.location?.city || "",
         state: company.location?.state || "",
         country: company.location?.country || "",
@@ -892,7 +889,6 @@ export function RecruiterCompanyPage() {
         description: draft.description.trim(),
         ...(draft.website.trim() ? { website: draft.website.trim() } : {}),
         industry: draft.industry.trim(),
-        companySize: draft.companySize.trim(),
         location: {
           city: draft.city.trim(),
           state: draft.state.trim(),
@@ -979,16 +975,6 @@ export function RecruiterCompanyPage() {
                   value={draft.industry}
                   onChange={(event) =>
                     setDraft({ ...draft, industry: event.target.value })
-                  }
-                />
-              </label>
-              <label>
-                Company size
-                <input
-                  placeholder="e.g. 50–200"
-                  value={draft.companySize}
-                  onChange={(event) =>
-                    setDraft({ ...draft, companySize: event.target.value })
                   }
                 />
               </label>
@@ -1718,6 +1704,72 @@ export function RecruiterApplicationPage() {
                 Submitted {formattedDate(application.appliedAt)}
               </p>
             </Card>
+            {(application.contactPhone ||
+              application.linkedinUrl ||
+              application.portfolioUrl ||
+              application.relevantExperienceYears !== undefined ||
+              application.noticePeriod) && (
+              <Card>
+                <h2>Candidate details</h2>
+                <div className="form-grid">
+                  {application.contactPhone && (
+                    <div>
+                      <strong>Phone</strong>
+                      <p>{application.contactPhone}</p>
+                    </div>
+                  )}
+                  {application.linkedinUrl && (
+                    <div>
+                      <strong>LinkedIn</strong>
+                      <p>
+                        <a
+                          href={application.linkedinUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          View profile
+                        </a>
+                      </p>
+                    </div>
+                  )}
+                  {application.portfolioUrl && (
+                    <div>
+                      <strong>Portfolio or website</strong>
+                      <p>
+                        <a
+                          href={application.portfolioUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Visit website
+                        </a>
+                      </p>
+                    </div>
+                  )}
+                  {application.relevantExperienceYears !== undefined && (
+                    <div>
+                      <strong>Relevant experience</strong>
+                      <p>{application.relevantExperienceYears} years</p>
+                    </div>
+                  )}
+                  {application.noticePeriod && (
+                    <div>
+                      <strong>Notice period</strong>
+                      <p>
+                        {{
+                          IMMEDIATE: "Available immediately",
+                          TWO_WEEKS: "2 weeks",
+                          ONE_MONTH: "1 month",
+                          TWO_MONTHS: "2 months",
+                          THREE_MONTHS: "3 months",
+                          OTHER: "Other / flexible",
+                        }[application.noticePeriod] || application.noticePeriod}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </Card>
+            )}
             <Card>
               <h2>Update status</h2>
               <form

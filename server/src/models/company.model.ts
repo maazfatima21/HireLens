@@ -6,7 +6,6 @@ export interface ICompany extends Document {
   description?: string;
   website?: string;
   industry?: string;
-  companySize?: string;
 
   location?: {
     city?: string;
@@ -52,11 +51,6 @@ const companySchema = new Schema<ICompany>(
     },
 
     industry: {
-      type: String,
-      trim: true
-    },
-
-    companySize: {
       type: String,
       trim: true
     },

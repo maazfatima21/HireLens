@@ -39,10 +39,6 @@ const companySchema = z.object({
     .string()
     .optional(),
 
-  companySize: z
-    .string()
-    .optional(),
-
   location: z
     .object({
       city: z.string().optional(),

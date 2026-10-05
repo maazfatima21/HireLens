@@ -92,7 +92,7 @@ export function Home() {
           <h1>Work that fits. Hiring with clarity.</h1>
           <p className="lede">A thoughtful place to discover meaningful roles, tell your story, and make confident next steps.</p>
           <form
-            className="home-search"
+            className="home-search hero-search-box"
             onSubmit={(event) => {
               event.preventDefault();
               navigate(`/jobs?search=${encodeURIComponent(term)}`);
@@ -237,12 +237,28 @@ export function JobDetail() {
   const { id = "" } = useParams();
   const { user } = useAuth();
   const [coverLetter, setCoverLetter] = useState("");
+  const [applicationDetails, setApplicationDetails] = useState({
+    contactPhone: "",
+    linkedinUrl: "",
+    portfolioUrl: "",
+    relevantExperienceYears: "",
+    noticePeriod: "",
+  });
   const query = useQuery({
     queryKey: ["job", id],
     queryFn: () => jobsApi.detail(id).then((r) => r.data.data.job),
   });
   const apply = useMutation({
-    mutationFn: () => applicationsApi.apply({ jobId: id, coverLetter: coverLetter.trim() || undefined }),
+    mutationFn: () =>
+      applicationsApi.apply({
+        jobId: id,
+        coverLetter: coverLetter.trim() || undefined,
+        contactPhone: applicationDetails.contactPhone.trim() || undefined,
+        linkedinUrl: applicationDetails.linkedinUrl.trim() || undefined,
+        portfolioUrl: applicationDetails.portfolioUrl.trim() || undefined,
+        relevantExperienceYears: applicationDetails.relevantExperienceYears === "" ? undefined : Number(applicationDetails.relevantExperienceYears),
+        noticePeriod: applicationDetails.noticePeriod || undefined,
+      }),
   });
   if (query.isLoading)
     return (
@@ -251,35 +267,176 @@ export function JobDetail() {
       </section>
     );
   const job = query.data;
+  const company = job?.companyId && "name" in job.companyId ? job.companyId : undefined;
+  const jobLocation = [job?.location?.city, job?.location?.state, job?.location?.country]
+    .filter(Boolean)
+    .join(", ") || (job?.workMode === "REMOTE" ? "Remote" : "Location not specified");
   return (
     <section className="page narrow">
       <Link className="back" to="/jobs">
         ← All opportunities
       </Link>
-      <p className="eyebrow">{job?.companyId?.name || "COMPANY"}</p>
+      <p className="eyebrow">{company?.name || "COMPANY"}</p>
       <h1>{job?.title}</h1>
       <p className="muted">
-        {job?.location?.city || "Remote"} · {job?.workMode} · {job?.jobType}
+        {jobLocation} · {job?.workMode?.replaceAll("_", " ")} · {job?.jobType?.replaceAll("_", " ")}
       </p>
       <div className="detail-layout">
         <article>
           <h2>About the role</h2>
           <p className="body-copy">{job?.description}</p>
-          <h2>What you’ll bring</h2>
+          <h2>Role details</h2>
+          <dl className="job-detail-facts">
+            <div><dt>Employment type</dt><dd>{job?.jobType?.replaceAll("_", " ")}</dd></div>
+            <div><dt>Work mode</dt><dd>{job?.workMode?.replaceAll("_", " ")}</dd></div>
+            <div><dt>Location</dt><dd>{jobLocation}</dd></div>
+            <div><dt>Experience</dt><dd>{job?.experienceMin !== undefined && job.experienceMax !== undefined ? `${job.experienceMin}–${job.experienceMax} years` : job?.experienceMin !== undefined ? `${job.experienceMin}+ years` : job?.experienceMax !== undefined ? `Up to ${job.experienceMax} years` : "Not specified"}</dd></div>
+            <div><dt>Salary</dt><dd>{job?.salaryMin !== undefined && job.salaryMax !== undefined ? `${job.salaryCurrency || ""} ${job.salaryMin.toLocaleString()} – ${job.salaryCurrency || ""} ${job.salaryMax.toLocaleString()}` : job?.salaryMin !== undefined ? `From ${job.salaryCurrency || ""} ${job.salaryMin.toLocaleString()}` : job?.salaryMax !== undefined ? `Up to ${job.salaryCurrency || ""} ${job.salaryMax.toLocaleString()}` : "Not disclosed"}</dd></div>
+            <div><dt>Application deadline</dt><dd>{job?.applicationDeadline ? new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(new Date(job.applicationDeadline)) : "Not specified"}</dd></div>
+          </dl>
+          <h2>Must Have Skills</h2>
           <div className="tags">
             {job?.skills.map((s) => (
               <Badge key={s}>{s}</Badge>
             ))}
           </div>
+          {company && (
+            <section className="company-job-profile">
+              <h2>About {company.name}</h2>
+              {company.tagline && <p className="muted">{company.tagline}</p>}
+              {company.description && <p className="body-copy">{company.description}</p>}
+              <dl className="job-detail-facts">
+                {company.industry && <div><dt>Industry</dt><dd>{company.industry}</dd></div>}
+                {company.website && <div><dt>Website</dt><dd><a href={company.website} target="_blank" rel="noreferrer">Visit company website</a></dd></div>}
+              </dl>
+            </section>
+          )}
         </article>
         <Card>
           <h3>Ready to apply?</h3>
           {user?.role === "CANDIDATE" ? (
-            <form onSubmit={(event) => { event.preventDefault(); apply.mutate(); }}>
-              <label htmlFor="application-cover-letter">Cover letter <span className="muted">(optional)</span></label>
-              <textarea id="application-cover-letter" maxLength={5000} rows={5} value={coverLetter} onChange={(event) => setCoverLetter(event.target.value)} placeholder="Tell the hiring team why this role interests you." />
-              <Link className="text-link" to="/resume">Manage the resume attached to your profile</Link>
-              <Button disabled={apply.isPending || apply.isSuccess}>
+            <form
+              className="workspace-form application-form"
+              onSubmit={(event) => {
+                event.preventDefault();
+                apply.mutate();
+              }}
+            >
+              <div className="application-form-section">
+                <h4>Contact and professional links</h4>
+                <div className="application-form-grid">
+                  <label className="application-field">
+                    <span className="application-field-title">Phone number <span className="required-indicator" aria-hidden="true">*</span></span>
+                    <input
+                      type="tel"
+                      maxLength={40}
+                      required
+                      value={applicationDetails.contactPhone}
+                      onChange={(event) =>
+                        setApplicationDetails({
+                          ...applicationDetails,
+                          contactPhone: event.target.value,
+                        })
+                      }
+                    />
+                  </label>
+                  <label className="application-field">
+                    <span className="application-field-title">LinkedIn profile <span className="required-indicator" aria-hidden="true">*</span></span>
+                    <input
+                      type="url"
+                      maxLength={500}
+                      required
+                      placeholder="https://www.linkedin.com/in/you"
+                      value={applicationDetails.linkedinUrl}
+                      onChange={(event) =>
+                        setApplicationDetails({
+                          ...applicationDetails,
+                          linkedinUrl: event.target.value,
+                        })
+                      }
+                    />
+                  </label>
+                  <label className="application-field">
+                    <span className="application-field-title">Portfolio or website <span className="required-indicator" aria-hidden="true">*</span></span>
+                    <input
+                      type="url"
+                      maxLength={500}
+                      required
+                      placeholder="https://example.com"
+                      value={applicationDetails.portfolioUrl}
+                      onChange={(event) =>
+                        setApplicationDetails({
+                          ...applicationDetails,
+                          portfolioUrl: event.target.value,
+                        })
+                      }
+                    />
+                  </label>
+                </div>
+              </div>
+              <div className="application-form-section">
+                <h4>Experience and availability</h4>
+                <div className="application-form-grid">
+                  <label className="application-field">
+                    <span className="application-field-title">Relevant experience in years <span className="required-indicator" aria-hidden="true">*</span></span>
+                    <input
+                      type="number"
+                      min="0"
+                      max="60"
+                      step="1"
+                      required
+                      value={applicationDetails.relevantExperienceYears}
+                      onChange={(event) =>
+                        setApplicationDetails({
+                          ...applicationDetails,
+                          relevantExperienceYears: event.target.value,
+                        })
+                      }
+                    />
+                  </label>
+                  <label className="application-field">
+                    <span className="application-field-title">Notice period <span className="required-indicator" aria-hidden="true">*</span></span>
+                    <select
+                      required
+                      value={applicationDetails.noticePeriod}
+                      onChange={(event) =>
+                        setApplicationDetails({
+                          ...applicationDetails,
+                          noticePeriod: event.target.value,
+                        })
+                      }
+                    >
+                      <option value="">Select</option>
+                      <option value="IMMEDIATE">Available immediately</option>
+                      <option value="TWO_WEEKS">2 weeks</option>
+                      <option value="ONE_MONTH">1 month</option>
+                      <option value="TWO_MONTHS">2 months</option>
+                      <option value="THREE_MONTHS">3 months</option>
+                      <option value="OTHER">Other / flexible</option>
+                    </select>
+                  </label>
+                </div>
+              </div>
+              <div className="application-form-section">
+                <label className="application-field cover-letter-field" htmlFor="application-cover-letter">
+                  <span className="application-field-title">Cover letter <span className="required-indicator" aria-hidden="true">*</span></span>
+                  <textarea
+                    id="application-cover-letter"
+                    maxLength={5000}
+                    rows={5}
+                    required
+                    value={coverLetter}
+                    onChange={(event) => setCoverLetter(event.target.value)}
+                    placeholder="Tell the hiring team why this role interests you."
+                  />
+                </label>
+              </div>
+              <label className="application-confirmation">
+                <input type="checkbox" required />
+                <span>I confirm that all the information provided is accurate.</span>
+                <span className="required-indicator" aria-hidden="true">*</span>
+              </label>
+              <Button type="submit" disabled={apply.isPending || apply.isSuccess}>
                 {apply.isPending ? "Submitting..." : apply.isSuccess ? "Application sent" : "Submit application"}
               </Button>
             </form>

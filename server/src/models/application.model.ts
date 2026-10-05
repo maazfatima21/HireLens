@@ -15,6 +15,11 @@ export interface IApplication extends Document {
   status: ApplicationStatus;
 
   coverLetter?: string;
+  contactPhone?: string;
+  linkedinUrl?: string;
+  portfolioUrl?: string;
+  relevantExperienceYears?: number;
+  noticePeriod?: string;
   resumeFileKey?: string;
 
   appliedAt: Date;
@@ -57,6 +62,35 @@ const applicationSchema = new Schema<IApplication>(
       type: String,
       trim: true,
       maxlength: 5000
+    },
+
+    contactPhone: {
+      type: String,
+      trim: true,
+      maxlength: 40
+    },
+
+    linkedinUrl: {
+      type: String,
+      trim: true,
+      maxlength: 500
+    },
+
+    portfolioUrl: {
+      type: String,
+      trim: true,
+      maxlength: 500
+    },
+
+    relevantExperienceYears: {
+      type: Number,
+      min: 0,
+      max: 60
+    },
+
+    noticePeriod: {
+      type: String,
+      enum: ["IMMEDIATE", "TWO_WEEKS", "ONE_MONTH", "TWO_MONTHS", "THREE_MONTHS", "OTHER"]
     },
 
     resumeFileKey: {

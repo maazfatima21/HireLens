@@ -13,6 +13,11 @@ import { ApiError } from "../utils/api-error.js";
 interface ApplyJobInput {
   jobId: string;
   coverLetter?: string;
+  contactPhone?: string;
+  linkedinUrl?: string;
+  portfolioUrl?: string;
+  relevantExperienceYears?: number;
+  noticePeriod?: string;
 }
 
 export const applyToJob = async (
@@ -67,6 +72,11 @@ export const applyToJob = async (
     jobId: data.jobId,
     candidateId,
     coverLetter: data.coverLetter,
+    contactPhone: data.contactPhone,
+    linkedinUrl: data.linkedinUrl,
+    portfolioUrl: data.portfolioUrl,
+    relevantExperienceYears: data.relevantExperienceYears,
+    noticePeriod: data.noticePeriod,
     resumeFileKey: candidateProfile?.resume?.fileKey,
     status: "APPLIED"
   });
@@ -339,7 +349,7 @@ export const getApplicationById = async (
       populate: {
         path: "companyId",
         select:
-          "name description website industry companySize location logoUrl"
+          "name description website industry location logoUrl"
       }
     });
 

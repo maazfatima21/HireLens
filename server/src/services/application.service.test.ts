@@ -79,7 +79,16 @@ describe("POST /api/applications", () => {
     const response = await fetch(`http://127.0.0.1:${address.port}/api/applications`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ jobId, coverLetter: "Interested in this QA role." })
+      body: JSON.stringify({
+        jobId,
+        coverLetter: "Interested in this QA role.",
+        contactPhone: "+1 555 123 4567",
+        linkedinUrl: "https://www.linkedin.com/in/candidate",
+        portfolioUrl: "https://portfolio.example.com",
+        relevantExperienceYears: 4,
+        noticePeriod: "ONE_MONTH",
+        informationConfirmed: true,
+      })
     });
     const body = await response.json() as {
       success: boolean;
@@ -93,7 +102,12 @@ describe("POST /api/applications", () => {
     expect(mocks.applicationCreate).toHaveBeenCalledWith(expect.objectContaining({
       jobId,
       candidateId,
-      status: "APPLIED"
+      status: "APPLIED",
+      contactPhone: "+1 555 123 4567",
+      linkedinUrl: "https://www.linkedin.com/in/candidate",
+      portfolioUrl: "https://portfolio.example.com",
+      relevantExperienceYears: 4,
+      noticePeriod: "ONE_MONTH",
     }));
     expect(mocks.historyCreate).toHaveBeenCalledWith(expect.objectContaining({
       applicationId,
@@ -102,6 +116,44 @@ describe("POST /api/applications", () => {
     }));
     expect(mocks.notifyUser).toHaveBeenCalledWith(expect.objectContaining({
       message: "Your application for QA Engineer is now applied."
+    }));
+  });
+
+  it("accepts empty optional details and no confirmation flag", async () => {
+    const app = express();
+    app.use(express.json());
+    app.post("/api/applications", (req: Request, _res: Response, next: NextFunction) => {
+      (req as Request & { user?: { userId: string; role: string } }).user = {
+        userId: candidateId,
+        role: "CANDIDATE"
+      };
+      next();
+    }, apply);
+
+    server = app.listen(0, "127.0.0.1");
+    await new Promise<void>(resolve => server.once("listening", resolve));
+    const address = server.address();
+    if (!address || typeof address === "string") throw new Error("Test server did not bind to a TCP port");
+
+    const response = await fetch(`http://127.0.0.1:${address.port}/api/applications`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        jobId,
+      })
+    });
+
+    expect(response.status).toBe(201);
+    expect(mocks.applicationCreate).toHaveBeenCalledWith(expect.objectContaining({
+      jobId,
+      candidateId,
+      status: "APPLIED",
+      coverLetter: undefined,
+      contactPhone: undefined,
+      linkedinUrl: undefined,
+      portfolioUrl: undefined,
+      relevantExperienceYears: undefined,
+      noticePeriod: undefined,
     }));
   });
 });

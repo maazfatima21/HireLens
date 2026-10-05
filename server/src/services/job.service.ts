@@ -100,7 +100,7 @@ export const getPublishedJobs = async (
   } as const;
   const [jobs, total] = await Promise.all([
     Job.find(filter)
-    .populate("companyId", "name logoUrl industry location")
+    .populate("companyId", "name tagline description website logoUrl industry location")
     .sort({ createdAt: -1 })
     .skip((page - 1) * limit)
     .limit(limit),
@@ -122,7 +122,7 @@ export const getPublishedJobById = async (
     status: "PUBLISHED"
   }).populate(
     "companyId",
-    "name description website industry companySize location logoUrl"
+    "name description website industry location logoUrl"
   );
 
   if (!job) {
@@ -287,7 +287,7 @@ export const searchPublishedJobs = async (
 
   const [jobs, total] = await Promise.all([
     Job.find(query)
-      .populate("companyId", "name logoUrl industry location")
+      .populate("companyId", "name tagline description website logoUrl industry location")
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit),
