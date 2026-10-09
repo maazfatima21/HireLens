@@ -292,13 +292,13 @@ Before a release, also build the production images and smoke-test the integrated
 ## 📸 Screenshots
 
 ### Home Page
-![Home Page](screenshots/home.jpg)
+![Home Page](screenshots/Home.jpg)
 
 ### Login Page
 ![Login Page](screenshots/Login.jpg)
 
 ### About
-![About](screenshots/about.jpg)
+![About](screenshots/About.jpg)
 
 ### Dashboard
 ![Dashboard Page](screenshots/Dashboard.jpg)
