@@ -291,7 +291,7 @@ Before a release, also build the production images and smoke-test the integrated
 
 ## 📸 Screenshots
 
-## Home Page
+### Home Page
 ![Home Page](screenshots/Home.jpg)
 
 ### Login Page
