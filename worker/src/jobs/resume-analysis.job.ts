@@ -21,24 +21,44 @@ export const processResumeAnalysis = async (
   );
   try {
     if (!analysis) throw new Error("Resume analysis record not found");
+
     const { data: object, error: downloadError } = await supabase.storage
       .from(supabaseResumeBucket)
       .download(data.resumeFileKey);
-    if (downloadError || !object) throw downloadError || new Error("Resume download returned no data");
+    if (downloadError || !object) {
+      throw downloadError || new Error("Resume download returned no data");
+    }
+
     const buffer = Buffer.from(await object.arrayBuffer());
+    if (!buffer.length) {
+      throw new Error("Resume file is empty");
+    }
+
     let text: string;
     if (data.resumeFileKey.toLowerCase().endsWith(".pdf")) {
-      const parser = new PDFParse({ data: buffer });
       try {
-        text = (await parser.getText()).text;
-      } finally {
-        await parser.destroy();
+        const parser = new PDFParse({ data: buffer });
+        try {
+          text = (await parser.getText()).text;
+        } finally {
+          await parser.destroy();
+        }
+      } catch (error) {
+        throw new Error(`PDF resume extraction failed: ${error instanceof Error ? error.message : "unknown error"}`);
       }
     } else {
-      text = (await mammoth.extractRawText({ buffer })).value;
+      try {
+        text = (await mammoth.extractRawText({ buffer })).value;
+      } catch (error) {
+        throw new Error(`DOCX resume extraction failed: ${error instanceof Error ? error.message : "unknown error"}`);
+      }
     }
+
     const rawText = normalizeResumeText(text);
-    if (rawText.replace(/\s/g, "").length < 50) throw new Error("Resume text extraction returned insufficient text");
+    if (rawText.replace(/\s/g, "").length < 50) {
+      throw new Error("Resume text extraction returned insufficient text");
+    }
+
     const result = await generateResumeAnalysis(rawText);
     await ResumeAnalysis.findOneAndUpdate(
       { _id: analysis._id, candidateId: data.candidateId, resumeFileKey: data.resumeFileKey, processingToken: data.processingToken, analysisStatus: "PROCESSING" },
@@ -49,9 +69,10 @@ export const processResumeAnalysis = async (
     console.error(`[resume-analysis] ${safeMessage}`);
     if (analysis) {
       const hasAttemptsRemaining = retry.attemptsMade + 1 < retry.maxAttempts;
+      const shouldRetry = hasAttemptsRemaining && !["Resume text extraction returned insufficient text", "Resume file is empty", "Resume download returned no data", "PDF resume extraction failed", "DOCX resume extraction failed"].includes(String((error as Error)?.message || error));
       await ResumeAnalysis.findOneAndUpdate(
         { _id: analysis._id, candidateId: data.candidateId, resumeFileKey: data.resumeFileKey, processingToken: data.processingToken, analysisStatus: "PROCESSING" },
-        hasAttemptsRemaining
+        shouldRetry
           ? { $set: { analysisStatus: "PENDING" }, $unset: { errorMessage: 1 } }
           : { $set: { analysisStatus: "FAILED", errorMessage: safeMessage } }
       );

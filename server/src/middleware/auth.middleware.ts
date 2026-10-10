@@ -11,18 +11,31 @@ export interface AuthenticatedRequest extends Request {
   user?: JwtPayload;
 }
 
+const parseSessionToken = (req: Request): string | null => {
+  const cookieHeader = req.headers.cookie;
+  if (!cookieHeader) {
+    return null;
+  }
+
+  const cookieEntries = cookieHeader.split(";").map((cookie) => cookie.trim());
+  const sessionCookie = cookieEntries.find((cookie) => cookie.startsWith("hirelens_session="));
+
+  if (!sessionCookie) {
+    return null;
+  }
+
+  const [, token] = sessionCookie.split("=");
+  return token ? decodeURIComponent(token) : null;
+};
+
 export const authenticate = (
   req: AuthenticatedRequest,
   _res: Response,
   next: NextFunction
 ): void => {
   const authHeader = req.headers.authorization;
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    throw new ApiError(401, "Authentication required");
-  }
-
-  const token = authHeader.split(" ")[1];
+  const tokenFromCookie = parseSessionToken(req);
+  const token = tokenFromCookie || (authHeader?.startsWith("Bearer ") ? authHeader.split(" ")[1] : null);
 
   if (!token) {
     throw new ApiError(401, "Authentication required");

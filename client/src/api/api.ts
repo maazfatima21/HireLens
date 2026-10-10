@@ -17,9 +17,13 @@ import type {
 
 export const authApi = {
 	login: (body: unknown) =>
-		api.post<ApiResponse<{ token: string; user: User }>>("/auth/login", body),
+		api.post<ApiResponse<{ user: User }>>("/auth/login", body),
 	register: (body: unknown) =>
 		api.post<ApiResponse<unknown>>("/auth/register", body),
+	me: () =>
+		api.get<ApiResponse<{ user: User }>>("/auth/me"),
+	logout: () =>
+		api.post<ApiResponse<unknown>>("/auth/logout", {}),
 };
 
 export const jobsApi = {

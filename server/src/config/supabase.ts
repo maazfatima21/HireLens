@@ -3,12 +3,12 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-export const supabaseResumeBucket = process.env.SUPABASE_RESUME_BUCKET || "resumes";
+const supabaseUrl = process.env.SUPABASE_URL?.trim();
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+export const supabaseResumeBucket = process.env.SUPABASE_RESUME_BUCKET?.trim() || "resumes";
 
 if (!supabaseUrl || !supabaseServiceRoleKey) {
-  throw new Error("Supabase configuration missing: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY");
+  throw new Error("Supabase configuration missing: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required");
 }
 
 export const supabase = createClient(supabaseUrl, supabaseServiceRoleKey, {

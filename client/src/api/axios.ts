@@ -1,24 +1,37 @@
-import axios from "axios";
+﻿import axios from "axios";
+
+const getCsrfToken = () => {
+	const cookieValue = document.cookie
+		.split(";")
+		.map((cookie) => cookie.trim())
+		.find((cookie) => cookie.startsWith("hirelens_csrf="));
+
+	if (!cookieValue) {
+		return "";
+	}
+
+	return decodeURIComponent(cookieValue.split("=")[1] ?? "");
+};
 
 export const api = axios.create({
 	baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
+	withCredentials: true,
 });
 
 api.interceptors.request.use((config) => {
-	const token = localStorage.getItem("hirelens_token");
-	if (token) {
-		config.headers.Authorization = `Bearer ${token}`;
+	if (config.method && ["get", "head", "options"].includes(config.method.toLowerCase())) {
+		return config;
 	}
+
+	const csrfToken = getCsrfToken();
+	if (csrfToken) {
+		config.headers["X-CSRF-Token"] = csrfToken;
+	}
+
 	return config;
 });
 
 api.interceptors.response.use(
 	(response) => response,
-	(error) => {
-		if (error.response?.status === 401) {
-			localStorage.removeItem("hirelens_token");
-			localStorage.removeItem("hirelens_user");
-		}
-		return Promise.reject(error);
-	},
+	(error) => Promise.reject(error),
 );

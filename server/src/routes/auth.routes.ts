@@ -2,7 +2,9 @@ import { Router } from "express";
 
 import {
   register,
-  login
+  login,
+  logout,
+  me,
 } from "../controllers/auth.controller.js";
 
 import {
@@ -18,20 +20,13 @@ router.post("/register", register);
 
 router.post("/login", login);
 
+router.post("/logout", authenticate, logout);
+
 router.get(
   "/me",
   authenticate,
-  authorize("CANDIDATE"),
-  (req: AuthenticatedRequest, res) => {
-    res.status(200).json({
-      success: true,
-      message: "Authenticated candidate",
-      data: {
-        userId: req.user?.userId,
-        role: req.user?.role
-      }
-    });
-  }
+  authorize("CANDIDATE", "RECRUITER", "ADMIN"),
+  me
 );
 
 export default router;

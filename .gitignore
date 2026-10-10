@@ -1,15 +1,21 @@
 # Dependencies
 node_modules/
 
-# Environment variables
+# Environment variables and secrets
 .env
 .env.*
 !.env.example
+*.pem
+*.key
+*.crt
+*.p12
+*.sqlite
+*.sqlite3
 
 # Build
-dist/
-build/
-*.tsbuildinfo
+**/dist/
+**/build/
+**/*.tsbuildinfo
 client/vite.config.js
 client/vite.config.d.ts
 
@@ -31,8 +37,16 @@ Thumbs.db
 # Docker
 docker-data/
 
-# Backups may contain application data
+# Backups, data stores, and uploads may contain sensitive application data
 backups/
+redis-data/
+mongo-data/
+uploads/
+storage/
+*.rdb
+*.aof
+*.pid
+*.sock
 
 # Temporary files
 tmp/

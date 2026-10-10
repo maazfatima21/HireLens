@@ -8,6 +8,12 @@ AI features provide resume analysis and resume-job match assistance. They are de
 
 Hiring workflows often scatter job discovery, applications, resume review, candidate communication, and interview scheduling across separate tools. HireLens brings those activities into one role-aware platform: candidates can track their applications, recruiters can manage job and applicant workflows, and administrators can oversee platform activity. Resume analysis and matching assist review, but do not make hiring decisions.
 
+## Deployment readiness status
+
+Current status: this repository is a viable MVP and local/staging deployment candidate, but it is not yet production-ready for public launch on a live VPS.
+
+Verified technical health includes passing builds and test suites across the client, server, and worker. Production deployment still requires additional hardening for privacy, deployment automation, backups, monitoring, and release governance. The current browser auth model uses signed session cookies and CSRF checks instead of storing JWTs in browser `localStorage` or `sessionStorage`, but it still needs live staging validation on a real host and real credentials.
+
 ## Contents
 
 - [Problem it solves](#problem-it-solves)
@@ -71,12 +77,12 @@ Resume-job matching is also available through application endpoints. AI output i
 ## Authentication and RBAC
 
 - Registration and login are provided under `/api/auth`; login returns a signed JWT and the user's role.
-- The client sends the token as an `Authorization: Bearer` header. The current client stores the token in browser `localStorage`.
+- The browser does not persist a JWT in `localStorage` or `sessionStorage`; the API uses `HttpOnly` session cookies and a CSRF header for mutation requests.
 - API middleware verifies token claims and recognizes `CANDIDATE`, `RECRUITER`, and `ADMIN` roles.
 - Role middleware restricts recruiter and administrator routes. Services also enforce ownership rules for user-specific records and recruiter-owned jobs/applicants.
 - The admin router requires authentication and the `ADMIN` role for every route.
 
-Because browser `localStorage` is accessible to JavaScript, an XSS vulnerability could expose a stored token. Keep dependencies and client rendering secure; moving authentication to Secure, HttpOnly cookies with an appropriate CSRF strategy is a possible future improvement.
+Because browser JavaScript can access `localStorage`, persistent bearer tokens are unsafe. This project avoids that pattern by relying on `HttpOnly`, same-site session cookies plus CSRF validation for state-changing requests. The live deployment still needs host-level validation and privacy review.
 
 ## Architecture
 
@@ -289,7 +295,7 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml config --quiet
 Before a release, also build the production images and smoke-test the integrated stack using the steps in [docs/deployment.md](docs/deployment.md). CI does not connect to live MongoDB, Supabase, or Gemini services and does not replace production smoke testing.
 
 
-## 📸 Screenshots
+## ðŸ“¸ Screenshots
 
 ### Home Page
 ![Home Page](screenshots/Home.jpg)
@@ -343,7 +349,7 @@ The repository does not currently select a cloud provider or automatically deplo
 - Configure a target registry and hosting provider, then extend the image-build workflow into a protected deployment pipeline.
 - Add client unit/component tests and browser end-to-end tests for candidate, recruiter, and administrator journeys.
 - Add centralized logs, alerting, automated backup verification, and documented restore drills.
-- Evaluate Secure, HttpOnly cookie authentication and CSRF protections instead of persisting bearer tokens in `localStorage`.
+- Keep the current secure cookie-session model and validate it through a live staged deployment, including TLS, domain, backup, and privacy checks.
 - Define and publish privacy, consent, retention, and deletion policies for resumes and AI processing.
 - Add accessibility checks and ongoing security/dependency scanning to CI.
 
@@ -373,6 +379,7 @@ docker compose config
 - [Architecture](docs/architecture.md)
 - [Development setup](docs/development.md)
 - [Deployment guide](docs/deployment.md)
+- [Staging deployment guide](docs/staging-deployment.md)
 
 ## License
 

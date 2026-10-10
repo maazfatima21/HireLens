@@ -10,9 +10,12 @@ The API is not published directly to the host. The client is bound to loopback b
 
 ## Production Compose
 
+This repo is suitable for controlled staging or private deployment, but not yet full public production deployment without additional security and operational hardening.
+
 1. Provision MongoDB with network restrictions and automated backups. Provision Supabase and create a private resume bucket.
 2. Create a deployment environment file from `.env.example`. Set the production `MONGODB_URI`, a random `JWT_SECRET` of at least 32 characters, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_RESUME_BUCKET`, `GEMINI_API_KEY`, `CLIENT_URL` to the exact public frontend origin, `DOMAIN` to its DNS name, and `ACME_EMAIL` for certificate registration. Never use a trailing slash in an origin.
 3. Point the domain's DNS records to the Docker host and allow inbound ports 80 and 443. Caddy uses `DOMAIN` and `ACME_EMAIL` from `deploy/Caddyfile` to obtain and renew TLS certificates, then proxies traffic to the loopback-bound client. Do not expose the API or Redis ports publicly.
+4. The browser does not persist JWTs in `localStorage` or `sessionStorage`. The current configuration uses `HttpOnly` session cookies and a CSRF header for mutation requests. This still requires real host validation before staging or public launch.
 4. Validate and start the production stack:
 
 	```powershell

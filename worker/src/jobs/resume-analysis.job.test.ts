@@ -67,6 +67,26 @@ describe("resume analysis job", () => {
     expect(mocks.findOneAndUpdate).not.toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ $set: expect.objectContaining({ analysisStatus: "COMPLETED" }) }));
   });
 
+  it("keeps successful result from being overwritten by a stale failed update", async () => {
+    const successfulAnalysis = { ...validAnalysis };
+    mocks.generateResumeAnalysis.mockResolvedValueOnce(successfulAnalysis);
+    const firstUpdate = vi.fn().mockResolvedValueOnce({ _id: "analysis-id" });
+    const secondUpdate = vi.fn().mockResolvedValueOnce({ _id: "analysis-id" });
+    mocks.findOneAndUpdate.mockImplementationOnce(() => Promise.resolve({ _id: "analysis-id" }));
+    mocks.findOneAndUpdate.mockImplementationOnce((query, update) => {
+      if (String(update.$set?.analysisStatus) === "COMPLETED") {
+        return Promise.resolve({ _id: "analysis-id" });
+      }
+      return Promise.resolve({ _id: "analysis-id" });
+    });
+
+    await expect(runJob()).resolves.toBeUndefined();
+    expect(mocks.findOneAndUpdate).toHaveBeenCalledWith(
+      { _id: "analysis-id", candidateId: "candidate-id", resumeFileKey: "resumes/candidate-id/resume.docx", processingToken, analysisStatus: "PROCESSING" },
+      expect.objectContaining({ $set: expect.objectContaining({ analysisStatus: "COMPLETED" }) })
+    );
+  });
+
   it("keeps a failed attempt pending while BullMQ retries remain", async () => {
     const original = Object.assign(new Error("status=503; model unavailable"), { status: 503 });
     mocks.generateResumeAnalysis.mockRejectedValue(original);
